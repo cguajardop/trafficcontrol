@@ -82,6 +82,7 @@ const (
 	PasswordKey = "password"
 	DBNameKey   = "dbname"
 	SSLModeKey  = "sslmode"
+	defaultDBSuperUser = "superuser"
 
 	// available commands
 	CmdCreateDB        = "createdb"
@@ -126,7 +127,6 @@ const (
 // Default connection information
 const (
 	defaultEnvironment = EnvDevelopment
-	defaultDBSuperUser = "postgres"
 )
 
 const (
@@ -145,7 +145,7 @@ var (
 	ConnectionString string
 	DBDriver         string
 	DBName           string
-	DBSuperUser      = defaultDBSuperUser
+	DBSuperUser      string
 	DBUser           string
 	DBPassword       string
 	HostIP           string
@@ -202,7 +202,8 @@ func parseDBConfig() error {
 		if pair == "" {
 			continue
 		}
-		kv := strings.Split(pair, "=")
+		kv := strings.SplitN(pair, "=", 2)
+		// kv := strings.Split(pair, "=")
 		if len(kv) != 2 || kv[0] == "" || kv[1] == "" {
 			continue
 		}
@@ -210,8 +211,8 @@ func parseDBConfig() error {
 	}
 
 	ok := false
-	stringPointers := []*string{&HostIP, &HostPort, &DBUser, &DBPassword, &DBName, &SSLMode}
-	keys := []string{HostKey, PortKey, UserKey, PasswordKey, DBNameKey, SSLModeKey}
+	stringPointers := []*string{&HostIP, &HostPort, &DBUser, &DBPassword, &DBName,  &DBSuperUser, &SSLMode}
+	keys := []string{HostKey, PortKey, UserKey, PasswordKey, DBNameKey, defaultDBSuperUser, SSLModeKey}
 	for index, stringPointer := range stringPointers {
 		key := keys[index]
 		*stringPointer, ok = open[key]

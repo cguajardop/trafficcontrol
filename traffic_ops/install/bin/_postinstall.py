@@ -228,6 +228,7 @@ DEFAULTS = {
 		Question("Database name", "traffic_ops", "dbname"),
 		Question("Database server hostname IP or FQDN", "localhost", "hostname"),
 		Question("Database port number", "5432", "port"),
+		Question("Traffic Ops database superuser", "postgres", "superuser"),
 		Question("Traffic Ops database user", "traffic_ops", "user"),
 		Question("Password for Traffic Ops database user", "", "password", hidden=True)
 	],
@@ -236,6 +237,7 @@ DEFAULTS = {
 		Question("Traffic Vault Database name", "traffic_vault", "dbname"),
 		Question("Traffic Vault Database server hostname IP or FQDN", "localhost", "hostname"),
 		Question("Traffic Vault Database port number", "5432", "port"),
+		Question("Traffic Vault database superuser", "postgres", "superuser"),
 		Question("Traffic Vault database user", "traffic_vault", "user"),
 		Question("Password for Traffic Vault database user", "", "password", hidden=True)
 	],
@@ -362,8 +364,9 @@ def generate_todb_conf(fname, root, conf): # (str, str, dict)
 	user = conf.get('user', 'UNKNOWN')
 	password = conf.get('password', 'UNKNOWN')
 	dbname = conf.get('dbname', 'UNKNOWN')
+	superuser = conf.get('superuser', 'UNKNOWN')
 
-	open_line = "host={hostname} port={port} user={user} password={password} dbname={dbname}".format(hostname=hostname, port=port, user=user, password=password, dbname=dbname)
+	open_line = "host={hostname} port={port} user={user} password={password} dbname={dbname} superuser={superuser}".format(hostname=hostname, port=port, user=user, password=password, dbname=dbname, superuser=superuser)
 	with open(path, 'w+') as conf_file:
 		print("production:", file=conf_file)
 		print("    driver:", driver, file=conf_file)
@@ -909,12 +912,10 @@ def setup_certificates(conf, root, ops_user, ops_group): # type: (SSLConfig, str
 	listen = hypnotoad["listen"][0]
 
 	if "cert={certpath}".format(certpath=certpath) not in listen or "key={keypath}".format(keypath=keypath) not in listen:
-		log_msg = """	The "listen" portion of %s is:
-	%s
-	and does not reference the same "cert=" and "key=" values as are created here.
+		log_msg = """	The "listen" portion of %s does not reference the same "cert=" and "key=" values as are created here.
 	Please modify %s to add the following as parameters:
-	?cert=%s&key=%s"""
-		logging.error(log_msg, cdn_conf_path, listen, cdn_conf_path, certpath, keypath)
+	?cert=/path/to/SSL/certificate&key=/path/to/SSL/key"""
+		logging.error(log_msg, cdn_conf_path, cdn_conf_path)
 		return 1
 
 	return 0
